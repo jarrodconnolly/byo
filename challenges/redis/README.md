@@ -1,4 +1,4 @@
-# RedisLite Benchmark
+# Build Your Own Redis Server
 
 ## Commands
 `redis-benchmark -t ping`
