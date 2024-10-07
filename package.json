@@ -1,0 +1,21 @@
+{
+  "name": "byo",
+  "description": "Coding Challenges - Build Your Own",
+  "author": "Jarrod Connolly",
+  "license": "MIT",
+  "keywords": [
+    "coding-challenges",
+    "coding",
+    "challenges",
+    "build-your-own",
+    "byo",
+    "John Crickett"
+  ],
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "1.9.3"
+  },
+  "dependencies": {
+    "pino": "9.4.0"
+  }
+}
