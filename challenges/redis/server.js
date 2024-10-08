@@ -1,12 +1,9 @@
 import net from 'node:net';
 import { RedisParser } from './parser.js';
-import { DataStore } from './datastore.js';
 
 const clientParsers = [];
 
 function startServer() {
-  const dataStore = new DataStore();
-
   const server = net.createServer({
     keepAlive: true,
     noDelay: true,
@@ -14,7 +11,7 @@ function startServer() {
 
   server.on('connection', (socket) => {
     //console.log('client connected');
-    const clientParser = new RedisParser(socket, dataStore);
+    const clientParser = new RedisParser(socket);
     clientParsers.push(clientParser);
 
     socket.on('end', () => {
@@ -25,7 +22,6 @@ function startServer() {
       //console.log(`Data received: ${data}`);
       clientParser.processCommands(data);
     });
-
   });
 
   server.on('error', (err) => {

@@ -41,3 +41,10 @@ REDIS
 SET: 338983.06 requests per second
 GET: 324675.31 requests per second
 ```
+
+`redis-benchmark -t SET,GET -q -r 10000`
+```
+ME DataStoreHashtable using custom hashtable with adler32 in Node.js
+SET: 303951.38 requests per second
+GET: 373134.31 requests per second
+```

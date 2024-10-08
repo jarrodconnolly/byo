@@ -1,16 +1,22 @@
+import {
+  DataStoreHashtable,
+  DataStoreMap,
+  DataStoreObject,
+} from './datastore.js';
+
 const CMD_ARRAY = '*'.charCodeAt(0);
 const CMD_BULK_STRING = '$'.charCodeAt(0);
 
 class RedisParser {
-  constructor(socket, dataStore) {
+  constructor(socket) {
     this.position = 0;
     this.serverSocket = socket;
-    this.dataStore = dataStore;
+    this.dataStore = new DataStoreHashtable();
   }
 
   processCommands(data) {
     this.position = 0;
-  
+
     while (this.position < data.length) {
       if (data[this.position] === CMD_ARRAY) {
         this.position++; // Skip the *
@@ -28,16 +34,16 @@ class RedisParser {
       isNegative = true;
       this.position++;
     }
-  
+
     while (data[this.position] !== 13) {
       number = number * 10 + (data[this.position] - 48);
       this.position++;
     }
-  
+
     if (isNegative) {
       number = -number;
     }
-  
+
     this.position += 2; // Skip the CRLF
     return number;
   }
@@ -49,34 +55,38 @@ class RedisParser {
     this.position++;
     return cr === 13 && lf === 10;
   }
-  
+
   readBulkString(data) {
     this.position++; // Skip the $
     const messageLength = this.readNumber(data);
-    const message = data.toString('ascii', this.position, this.position + messageLength);
+    const message = data.toString(
+      'ascii',
+      this.position,
+      this.position + messageLength,
+    );
     this.position += messageLength + 2; // Skip the message and the CRLF
     return message;
   }
-  
+
   processPing(data) {
     this.serverSocket.write('+PONG\r\n');
   }
-  
+
   sendSimpleString(message) {
     this.serverSocket.write(`+${message}\r\n`);
   }
-  
+
   sendBulkString(message) {
     this.serverSocket.write(`$${message.length}\r\n${message}\r\n`);
   }
   buildBulkString(message) {
     return `$${message.length}\r\n${message}\r\n`;
   }
-  
+
   sendError(message) {
     this.serverSocket.write(`-ERR ${message}\r\n`);
   }
-  
+
   processConfig(data) {
     const subCommand = this.readBulkString(data);
     if (subCommand === 'GET') {
@@ -94,16 +104,20 @@ class RedisParser {
       }
     }
   }
-  
+
   processHello(data) {
     const version = this.readNumber(data);
-    sendError('unknown command \'HELLO\''); // error to force client to use RESP2 
+    sendError("unknown command 'HELLO'"); // error to force client to use RESP2
   }
-  
+
   processInline(data) {
-    const message = data.toString('ascii', this.position, data.indexOf('\r\n', this.position));
+    const message = data.toString(
+      'ascii',
+      this.position,
+      data.indexOf('\r\n', this.position),
+    );
     this.position += message.length + 2; // Skip the message and the CRLF
-  
+
     if (message === 'PING') {
       this.processPing(data);
     } else {
@@ -113,17 +127,17 @@ class RedisParser {
   processArray(data) {
     const messageCount = this.readNumber(data);
     //console.log(`Array Count: ${messageCount}`);
-  
+
     if (data[this.position] === CMD_BULK_STRING) {
       const command = this.readBulkString(data);
       if (command === 'PING') {
         this.processPing(data);
-      } else if(command === 'SET') {
+      } else if (command === 'SET') {
         const key = this.readBulkString(data);
         const value = this.readBulkString(data);
         this.dataStore.set(key, value);
         this.sendSimpleString('OK');
-      } else if(command === 'GET') {
+      } else if (command === 'GET') {
         const key = this.readBulkString(data);
         const value = this.dataStore.get(key);
         if (value) {
@@ -136,7 +150,7 @@ class RedisParser {
       } else if (command === 'ECHO') {
         const message = this.readBulkString(data);
         this.sendSimpleString(message);
-      } else if(command === 'HELLO') {
+      } else if (command === 'HELLO') {
         this.processHello(data);
       } else {
         this.sendError('unknown command');
