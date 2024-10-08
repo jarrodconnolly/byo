@@ -12,6 +12,9 @@
     "John-Crickett"
   ],
   "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
   "devDependencies": {
     "@biomejs/biome": "1.9.3"
   },

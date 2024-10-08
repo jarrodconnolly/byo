@@ -23,11 +23,9 @@ function startServer() {
 
     socket.on('data', (data) => {
       //console.log(`Data received: ${data}`);
-      //processCommands(data);
       clientParser.processCommands(data);
     });
 
-    //setServerSocket(socket);
   });
 
   server.on('error', (err) => {
