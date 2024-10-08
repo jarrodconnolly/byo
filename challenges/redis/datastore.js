@@ -26,14 +26,17 @@ class DataStoreObject {
 }
 
 class DataStoreHashtable {
-  constructor() {
-    this.data = new HashTable(1000, adler32);
+  constructor(size = 1000) {
+    this.data = new HashTable(size, adler32);
   }
   set(key, value) {
     this.data.insert(key, value);
   }
   get(key) {
     return this.data.get(key);
+  }
+  stats() {
+    return this.data.stats();
   }
 }
 

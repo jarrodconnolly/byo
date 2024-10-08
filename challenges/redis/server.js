@@ -1,17 +1,29 @@
 import net from 'node:net';
 import { RedisParser } from './parser.js';
+import {
+  DataStoreHashtable,
+  DataStoreMap,
+  DataStoreObject,
+} from './datastore.js';
 
 const clientParsers = [];
 
 function startServer() {
+  const datastore = new DataStoreHashtable(10000);
+
   const server = net.createServer({
     keepAlive: true,
     noDelay: true,
   });
 
+  process.on('SIGHUP', () => {
+    const stats = datastore.stats();
+    console.log(`Datastore: ${JSON.stringify(stats, null, 2)}`);
+  });
+
   server.on('connection', (socket) => {
     //console.log('client connected');
-    const clientParser = new RedisParser(socket);
+    const clientParser = new RedisParser(socket, datastore);
     clientParsers.push(clientParser);
 
     socket.on('end', () => {

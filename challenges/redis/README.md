@@ -1,6 +1,22 @@
 # Build Your Own Redis Server
 
-## Commands
+## adler32 collisions
+
+redis-benchmark keys do not play well with adler32
+
+take a look at the `collisions` unit test in `adler32.test.js`
+
+`redis-benchmark -t SET,GET -q -r 10000`
+```
+Datastore: {
+  "bucketsUsed": 847,
+  "totalBuckets": 10000,
+  "longestChain": 371,
+  "entryCount": 100000
+}
+```
+
+## Performance Tests
 `redis-benchmark -t ping`
 ```
 ME
@@ -45,6 +61,6 @@ GET: 324675.31 requests per second
 `redis-benchmark -t SET,GET -q -r 10000`
 ```
 ME DataStoreHashtable using custom hashtable with adler32 in Node.js
-SET: 303951.38 requests per second
-GET: 373134.31 requests per second
+SET: 319488.81 requests per second
+GET: 201207.23 requests per second
 ```

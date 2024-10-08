@@ -1,17 +1,13 @@
-import {
-  DataStoreHashtable,
-  DataStoreMap,
-  DataStoreObject,
-} from './datastore.js';
+
 
 const CMD_ARRAY = '*'.charCodeAt(0);
 const CMD_BULK_STRING = '$'.charCodeAt(0);
 
 class RedisParser {
-  constructor(socket) {
+  constructor(socket, datastore) {
     this.position = 0;
     this.serverSocket = socket;
-    this.dataStore = new DataStoreHashtable();
+    this.dataStore = datastore;
   }
 
   processCommands(data) {
