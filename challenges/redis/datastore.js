@@ -1,5 +1,6 @@
 import HashTable from '../../lib/ds/hashtable.js';
 import adler32 from '../../lib/hash/adler32.js';
+import murmur3_32 from '../../lib/hash/murmur.js';
 
 class DataStoreMap {
   constructor() {
@@ -27,7 +28,7 @@ class DataStoreObject {
 
 class DataStoreHashtable {
   constructor(size = 1000) {
-    this.data = new HashTable(size, adler32);
+    this.data = new HashTable(size, murmur3_32);
   }
   set(key, value) {
     this.data.insert(key, value);

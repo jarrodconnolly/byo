@@ -1,6 +1,6 @@
 # Build Your Own Redis Server
 
-## adler32 collisions
+## adler32
 
 redis-benchmark keys do not play well with adler32
 
@@ -12,6 +12,21 @@ Datastore: {
   "bucketsUsed": 847,
   "totalBuckets": 10000,
   "longestChain": 371,
+  "entryCount": 100000
+}
+```
+
+## murmur32
+`redis-benchmark -t SET,GET -q -r 10000`
+```
+SET: 259067.36 requests per second
+GET: 222717.16 requests per second
+```
+```
+Datastore: {
+  "bucketsUsed": 6316,
+  "totalBuckets": 10000,
+  "longestChain": 69,
   "entryCount": 100000
 }
 ```
