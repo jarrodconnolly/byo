@@ -1,5 +1,11 @@
 # Build Your Own Redis Server
 
+## Stats
+Dump stats using a signal to Node.js process
+`node challenges/redis/index.js`
+`pkill -HUP -f "challenges/redis"`
+
+
 ## adler32
 
 redis-benchmark keys do not play well with adler32
