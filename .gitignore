@@ -1,2 +1,5 @@
 node_modules
 .vscode
+
+# huffman output
+challenges/huffman/*.huf

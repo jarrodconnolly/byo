@@ -31,9 +31,12 @@ const prefixTable = huffmanTree.toPrefixTable();
 console.log(`Prefix table size: ${prefixTable.size}`);
 
 const header = JSON.stringify(Array.from(prefixTable.entries()));
-console.log(`Header size: ${header.length} bytes`);
+const fileHeader = `CCH${header.length}${header}\n`;
+console.log(`Header size: ${fileHeader.length} bytes`);
 
 let bitCount = 0;
+let current = 0;
+let shifted = 0;
 const myTransform = new Transform({
   transform(chunk, encoding, callback) {
     let i = 0;
@@ -41,20 +44,34 @@ const myTransform = new Transform({
       const c = chunk[i];
       const prefix = prefixTable.get(c);
       bitCount += prefix.length;
-      // for (let j = 0; j < prefix.length; j++) {
-      //   const bit = prefix[j] === '0' ? 0 : 1;
-      //   this.push(Buffer.from([bit]));
-      //   bitCount++;
-      // }
+      for (let j = 0; j < prefix.length; j++) {
+        if (prefix[j] === '1') {
+          current = (current << 1) | 1;
+          shifted++;
+        } else {
+          current = current << 1;
+          shifted++;
+        }
+        if (shifted === 8) {
+          this.push(Buffer.from([current]));
+          current = 0;
+          shifted = 0;
+        }
+      }
       i++;
     }
-    //this.push(chunk);
     callback();
   },
+  flush(callback) {
+    if (shifted > 0) {
+      this.push(Buffer.from([current << (8 - shifted)]));
+    }
+    callback();
+  }
 });
 
 const outputStream = createWriteStream(outputFilename);
-outputStream.write(`CCH${header.length}${header}\n`);
+outputStream.write(fileHeader);
 const fileStream = createReadStream(file);
 await pipeline(
   fileStream,
@@ -62,11 +79,12 @@ await pipeline(
   outputStream
 );
 
-const outputStats = await stat(outputFilename);
-console.log(`Output file size: ${outputStats.size} bytes`);
-
-console.log(`Bit count: ${bitCount}`);
-
 const byteCount = Math.floor(bitCount / 8);
 const remainder = bitCount % 8;
 console.log(`Byte count: ${byteCount} + ${remainder} bits`);
+console.log(`Output Total: ${byteCount + (remainder > 0 ? 1 : 0) + fileHeader.length} bytes`);
+
+const outputStats = await stat(outputFilename);
+console.log(`Output file size: ${outputStats.size} bytes`);
+
+console.log(`Compression ratio: ${(outputStats.size / stats.size * 100).toFixed(2)}%`);
