@@ -18,11 +18,11 @@ if(!file) {
 const outputFilename = `${file}.huf`;
 
 const stats = await stat(file);
-console.log(`File size: ${stats.size} bytes`);
+console.log(`Input file size: ${stats.size} bytes`);
 
 const stream = createReadStream(file);
 const frequencyMap = await countFrequency(stream);
-console.log(`Unique bytes: ${frequencyMap.size}`);
+console.log(`\nUnique bytes: ${frequencyMap.size}`);
 
 const huffmanTree = Tree.buildTree(frequencyMap);
 console.log(`Tree depth: ${huffmanTree.getRoot().weight}`);
@@ -82,10 +82,10 @@ await pipeline(
 const byteCount = Math.floor(bitCount / 8);
 const remainder = bitCount % 8;
 console.log(`Byte count: ${byteCount} + ${remainder} bits`);
-console.log(`Output Total: ${byteCount + (remainder > 0 ? 1 : 0) + fileHeader.length} bytes`);
+console.log(`Total: ${byteCount + (remainder > 0 ? 1 : 0) + fileHeader.length} bytes`);
 
 const outputStats = await stat(outputFilename);
-console.log(`Output file size: ${outputStats.size} bytes`);
+console.log(`\nCompressed file size: ${outputStats.size} bytes`);
 
 console.log(`Compression ratio: ${(outputStats.size / stats.size * 100).toFixed(2)}%`);
 
