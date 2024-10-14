@@ -3,3 +3,4 @@ node_modules
 
 # huffman output
 challenges/huffman/*.huf
+challenges/huffman/*.decompressed

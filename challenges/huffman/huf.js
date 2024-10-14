@@ -30,8 +30,8 @@ console.log(`Tree depth: ${huffmanTree.getRoot().weight}`);
 const prefixTable = huffmanTree.toPrefixTable();
 console.log(`Prefix table size: ${prefixTable.size}`);
 
-const header = JSON.stringify(Array.from(prefixTable.entries()));
-const fileHeader = `CCH${header.length}${header}\n`;
+const header = JSON.stringify(Array.from(frequencyMap.entries()));
+const fileHeader = `CCH${header}\n`;
 console.log(`Header size: ${fileHeader.length} bytes`);
 
 let bitCount = 0;
@@ -88,3 +88,61 @@ const outputStats = await stat(outputFilename);
 console.log(`Output file size: ${outputStats.size} bytes`);
 
 console.log(`Compression ratio: ${(outputStats.size / stats.size * 100).toFixed(2)}%`);
+
+// Decompression
+console.log('\nDecompressing...');
+const input = createReadStream(outputFilename);
+const decompressedFilename = `${file}.decompressed`;
+const decompressedStream = createWriteStream(decompressedFilename);
+
+let headerRead = false;
+let readHeader = '';
+await pipeline(
+  input,
+  new Transform({
+    transform(chunk, encoding, callback) {
+      let i = 0;
+
+      if(!headerRead) {
+        if(chunk[0] !== 67 || chunk[1] !== 67 || chunk[2] !== 72) {
+          console.error('Invalid header');
+          process.exit(1);
+        }
+        i += 3; // skip CCH header
+        while (i < chunk.length && chunk[i] !== 10) {
+          readHeader += String.fromCharCode(chunk[i]);
+          i++;
+        }
+
+        i++; // skip newline
+        const frequencyMap = new Map(JSON.parse(readHeader));
+        const huffmanTree = Tree.buildTree(frequencyMap);
+        headerRead = true;
+      }
+      
+      let currentNode = huffmanTree.getRoot();
+      while (i < chunk.length) {
+        let current = chunk[i];
+        for (let j = 0; j < 8; j++) {
+          const bit = (current & 0x80) ? '1' : '0';
+          current = current << 1;
+          if (bit === '1') {
+            currentNode = currentNode.right;
+          } else {
+            currentNode = currentNode.left;
+          }
+          if (currentNode.isLeaf()) {
+            this.push(Buffer.from([currentNode.value]));
+            currentNode = huffmanTree.getRoot();
+          }
+        }
+        i++;
+      }
+      callback();
+    }
+  }),
+  decompressedStream
+);
+
+const decompressedStats = await stat(decompressedFilename);
+console.log(`Decompressed file size: ${decompressedStats.size} bytes`);
